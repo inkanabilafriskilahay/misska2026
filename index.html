@@ -713,7 +713,7 @@ function doRegister(){
   toast('✅ Akun berhasil dibuat! Selamat datang, '+nama.split(' ')[0]+'!');
 }
 
-function doLogin(){
+async function doLogin(){
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const pass = document.getElementById('loginPass').value;
   const errEl = document.getElementById('loginErr');
@@ -721,18 +721,62 @@ function doLogin(){
 
   if(!email || !pass){ showErr(errEl, 'Email dan password wajib diisi.'); return; }
 
+  // 1) Coba login lokal terlebih dahulu agar akun lama tetap kompatibel.
   const user = getUserByEmail(email);
-  if(!user || user.password !== pass){
-    showErr(errEl, 'Email atau password salah.'); return;
+  if(user && user.password === pass){
+    CU = user;
+    sessionStorage.setItem('misska_cu', JSON.stringify(CU));
+    if(!CU.approved){ showPending(); return; }
+    showApp();
+    return;
   }
 
-  CU = user;
-  sessionStorage.setItem('misska_cu', JSON.stringify(CU));
+  // 2) Jika data akun lokal hilang/bermasalah, gunakan Supabase Auth.
+  //    Setelah berhasil, buat kembali profil akun lokal dengan UID Supabase.
+  try{
+    if(!initCloudClient()) throw new Error('Konfigurasi Cloud Sync belum tersedia di perangkat ini.');
+    if(!navigator.onLine) throw new Error('Tidak ada koneksi internet.');
 
-  if(!CU.approved){
-    showPending(); return;
+    const result = await MISSKA_SUPABASE.auth.signInWithPassword({email, password:pass});
+    if(result.error || !result.data || !result.data.user){
+      throw result.error || new Error('Email atau password Supabase salah.');
+    }
+
+    const cloudUser = result.data.user;
+    const users = getUsers();
+    const existingByEmail = Object.values(users).find(u => u.email === email);
+    const uid = cloudUser.id;
+    const recovered = {
+      id: uid,
+      email: email,
+      password: pass,
+      nama: (cloudUser.user_metadata && cloudUser.user_metadata.nama) || (existingByEmail && existingByEmail.nama) || email.split('@')[0],
+      approved: true,
+      createdAt: (existingByEmail && existingByEmail.createdAt) || Date.now()
+    };
+
+    // Buang entri lokal lama untuk email yang sama agar tidak ada duplikasi.
+    Object.keys(users).forEach(k=>{ if(users[k] && users[k].email === email && k !== uid) delete users[k]; });
+    users[uid] = recovered;
+    saveUsers(users);
+
+    CU = recovered;
+    sessionStorage.setItem('misska_cu', JSON.stringify(CU));
+    showApp();
+    toast('✅ Login berhasil. Akun MISSKA dipulihkan dari akun cloud.');
+  }catch(e){
+    console.error('MISSKA login:', e);
+    const msg = (e && e.message) ? e.message : '';
+    if(msg.toLowerCase().includes('email not confirmed') || msg.toLowerCase().includes('email belum dikonfirmasi')){
+      showErr(errEl, 'Email Supabase belum terverifikasi. Buka email verifikasi lalu coba lagi.');
+    }else if(msg.includes('Konfigurasi Cloud Sync')){
+      showErr(errEl, 'Akun lokal MISSKA tidak ditemukan. Konfigurasi Cloud Sync di perangkat ini terlebih dahulu.');
+    }else if(msg.includes('Invalid login credentials')){
+      showErr(errEl, 'Password Supabase tidak cocok. Gunakan password yang dipakai saat membuat akun cloud.');
+    }else{
+      showErr(errEl, 'Login gagal: ' + msg);
+    }
   }
-  showApp();
 }
 
 function doResetPassword(){
