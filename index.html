@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="theme-color" content="#0a1f44"/>
+<title>MISSKA — Aplikasi Guru</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#0a1f44;--navy2:#152d5e;--navy3:#1e3a6e;
+  --gold:#c9a84c;--gold2:#b8922e;--gold3:#e8c96a;
+  --white:#ffffff;--offwhite:#f8f6f1;
+  --black:#111318;--text:#1e2a3a;
+  --border:#dde3f0;--border2:#c9a84c33;
+  --bg:#f4f2ed;
+  --shadow:0 4px 20px rgba(10,31,68,.12);
+  --shadow2:0 8px 32px rgba(10,31,68,.18);
+  --green:#27ae60;--red:#e74c3c;--orange:#e67e22;
+}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ===== AUTH ===== */
+.auth-page{display:none;align-items:center;justify-content:center;min-height:100vh;
+  background:linear-gradient(145deg,var(--navy) 0%,var(--navy2) 50%,#0d1b38 100%);}
+.auth-page.active{display:flex;}
+.auth-page::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 50%,rgba(201,168,76,.12) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 20%,rgba(201,168,76,.08) 0%,transparent 50%);
+  pointer-events:none;}
+.auth-box{background:var(--white);border-radius:22px;padding:44px 40px;width:100%;max-width:420px;
+  box-shadow:0 20px 60px rgba(0,0,0,.3),0 0 0 1px rgba(201,168,76,.15);
+  position:relative;z-index:1;}
+.auth-logo{text-align:center;margin-bottom:26px;}
+.auth-logo .ic{font-size:3rem;display:block;margin-bottom:6px;}
+.auth-logo h1{font-size:1.6rem;font-weight:900;color:var(--navy);letter-spacing:-.5px;}
+.auth-logo .tagline{font-size:.78rem;color:#9aabb8;margin-top:3px;letter-spacing:.5px;text-transform:uppercase;}
+.auth-logo .gold-bar{width:40px;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold3));
+  border-radius:99px;margin:10px auto 0;}
+.fg{margin-bottom:15px;}
+.fg label{display:block;font-size:.72rem;font-weight:700;color:#8a9bb5;
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:11px 14px;
+  border:1.5px solid #e8edf5;border-radius:10px;font-size:.92rem;outline:none;
+  transition:border .2s,box-shadow .2s;font-family:inherit;background:#fafbfe;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{
+  border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.12);}
+.btn{padding:11px 20px;border:none;border-radius:10px;font-size:.88rem;font-weight:700;
+  cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;
+  letter-spacing:.2px;}
+.btn-navy{background:var(--navy);color:var(--white);}
+.btn-navy:hover{background:var(--navy2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(10,31,68,.3);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--white);}
+.btn-gold:hover{background:linear-gradient(135deg,var(--gold3),var(--gold));transform:translateY(-1px);box-shadow:0 4px 14px rgba(201,168,76,.35);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:#219150;transform:translateY(-1px);}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover{background:#c0392b;transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--navy);border:1.5px solid var(--border);background:#fff;}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold2);}
+.btn-full{width:100%;justify-content:center;}
+.btn-sm{padding:6px 13px;font-size:.78rem;}
+.auth-err{background:#fff2f2;color:var(--red);border-radius:9px;padding:9px 13px;
+  font-size:.82rem;margin-bottom:13px;display:none;border-left:3px solid var(--red);}
+.auth-switch{text-align:center;margin-top:18px;font-size:.82rem;color:#9aabb8;}
+.auth-switch a{color:var(--gold2);font-weight:700;cursor:pointer;text-decoration:none;}
+.auth-switch a:hover{color:var(--gold);}
+
+/* ===== PENDING ===== */
+#pendingPage{display:none;align-items:center;justify-content:center;min-height:100vh;
+  background:linear-gradient(145deg,var(--navy),var(--navy2),#0d1b38);}
+.pending-box{background:#fff;border-radius:22px;padding:44px 36px;max-width:400px;
+  width:100%;text-align:center;box-shadow:var(--shadow2);}
+.pending-box .pi{font-size:3.5rem;margin-bottom:14px;}
+.pending-box h2{font-size:1.15rem;font-weight:800;color:var(--navy);margin-bottom:10px;}
+.pending-box p{font-size:.83rem;color:#7a8aaa;line-height:1.8;}
+.pending-email-box{margin-top:16px;padding:12px 16px;background:var(--offwhite);
+  border-radius:10px;font-size:.82rem;color:#7a8aaa;border:1px solid var(--border2);}
+
+/* ===== APP ===== */
+#appPage{display:none;}
+.topbar{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);
+  color:#fff;height:60px;padding:0 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 3px 16px rgba(10,31,68,.3);position:sticky;top:0;z-index:100;
+  border-bottom:2px solid rgba(201,168,76,.3);}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.topbar-brand{display:flex;align-items:center;gap:8px;}
+.topbar-brand .logo-ic{font-size:1.4rem;}
+.topbar-brand-text h1{font-size:.95rem;font-weight:900;letter-spacing:.5px;color:#fff;}
+.topbar-brand-text .sub{font-size:.65rem;color:var(--gold3);letter-spacing:.3px;}
+.topbar-divider{width:1px;height:28px;background:rgba(255,255,255,.2);margin:0 4px;}
+.topbar-user{font-size:.75rem;color:rgba(255,255,255,.8);}
+.topbar-user strong{color:var(--gold3);}
+.btn-logout-top{padding:7px 15px;
+  background:rgba(201,168,76,.15);color:var(--gold3);
+  border:1px solid rgba(201,168,76,.4);border-radius:8px;
+  cursor:pointer;font-size:.78rem;font-weight:700;transition:all .2s;}
+.btn-logout-top:hover{background:rgba(201,168,76,.25);color:var(--gold);}
+
+/* NAV TABS */
+.nav-tabs{background:var(--navy);
+  display:flex;overflow-x:auto;position:sticky;top:60px;z-index:99;
+  border-bottom:2px solid rgba(201,168,76,.25);}
+.nav-tabs::-webkit-scrollbar{height:2px;}
+.nav-tabs::-webkit-scrollbar-thumb{background:var(--gold);}
+.nav-tab{padding:14px 20px;font-size:.82rem;font-weight:600;color:rgba(255,255,255,.55);
+  cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;
+  transition:all .18s;flex-shrink:0;letter-spacing:.2px;}
+.nav-tab.active{color:var(--gold3);border-bottom-color:var(--gold);}
+.nav-tab:hover:not(.active){color:rgba(255,255,255,.85);background:rgba(255,255,255,.05);}
+
+/* PAGES */
+.page{display:none;padding:22px 18px 90px;max-width:960px;margin:0 auto;}
+.page.active{display:block;}
+.page-title{font-size:1.1rem;font-weight:800;color:var(--navy);margin-bottom:20px;
+  display:flex;align-items:center;gap:9px;padding-bottom:12px;
+  border-bottom:2px solid var(--border2);}
+
+/* CARDS */
+.card{background:var(--white);border-radius:16px;box-shadow:var(--shadow);
+  padding:22px;margin-bottom:18px;border:1px solid rgba(201,168,76,.08);}
+.card h3{font-size:.88rem;font-weight:700;color:var(--navy);margin-bottom:14px;
+  padding-bottom:10px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:7px;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:20px;}
+.stat-card{background:var(--white);border-radius:14px;padding:18px 14px;text-align:center;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
+  border:1px solid rgba(201,168,76,.1);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.stat-card.navy::before{background:linear-gradient(90deg,var(--navy),var(--navy3));}
+.stat-card.gold::before{background:linear-gradient(90deg,var(--gold),var(--gold3));}
+.stat-card.green::before{background:linear-gradient(90deg,#27ae60,#2ecc71);}
+.stat-card.red::before{background:linear-gradient(90deg,#e74c3c,#e67e22);}
+.stat-card .sv{font-size:1.9rem;font-weight:900;color:var(--navy);line-height:1.1;}
+.stat-card .sl{font-size:.66rem;color:#9aabb8;font-weight:600;text-transform:uppercase;
+  letter-spacing:.5px;margin-top:4px;}
+.stat-card .si{font-size:1.3rem;margin-bottom:6px;opacity:.7;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;min-width:300px;}
+thead tr{background:linear-gradient(135deg,var(--navy),var(--navy2));}
+thead th{padding:10px 12px;font-size:.76rem;font-weight:600;text-align:center;
+  color:rgba(255,255,255,.9);letter-spacing:.3px;}
+thead th:first-child{border-radius:9px 0 0 0;}
+thead th:last-child{border-radius:0 9px 0 0;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+tbody tr:hover{background:#fdf9f0;}
+tbody tr:last-child{border-bottom:none;}
+tbody td{padding:10px 12px;font-size:.84rem;text-align:center;}
+tbody td.tl{text-align:left;}
+
+/* ABSENSI BUTTONS */
+.abs-btn-group{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
+.abs-btn{padding:5px 11px;border:1.5px solid var(--border);border-radius:7px;
+  font-size:.72rem;font-weight:700;cursor:pointer;background:#f8f8f8;
+  color:#888;transition:all .18s;opacity:.5;}
+.abs-btn.active-btn{opacity:1;transform:scale(1.05);}
+.abs-btn.hadir{background:#e6f9ee;border-color:#27ae60;color:#27ae60;}
+.abs-btn.izin{background:#fff8e6;border-color:#f39c12;color:#d68910;}
+.abs-btn.sakit{background:#fff3e6;border-color:#e67e22;color:#ca6f1e;}
+.abs-btn.alfa{background:#fff0f0;border-color:#e74c3c;color:#cb4335;}
+
+/* NILAI INPUT */
+.nilai-input{width:65px;padding:6px 7px;border:1.5px solid var(--border);border-radius:7px;
+  font-size:.85rem;text-align:center;outline:none;transition:border .2s;}
+.nilai-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.12);}
+
+/* BADGE */
+.badge{padding:3px 10px;border-radius:99px;font-size:.71rem;font-weight:700;display:inline-block;}
+.badge-navy{background:rgba(10,31,68,.08);color:var(--navy);border:1px solid rgba(10,31,68,.15);}
+.badge-gold{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid rgba(201,168,76,.3);}
+.badge-green{background:#e6f9ee;color:#1a7a3c;border:1px solid #a3d9b5;}
+.badge-red{background:#fff0f0;color:#c0392b;border:1px solid #f5b8b8;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,31,68,.55);
+  display:none;align-items:center;justify-content:center;z-index:999;padding:16px;
+  backdrop-filter:blur(3px);}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:18px;padding:30px 26px;width:100%;max-width:450px;
+  max-height:90vh;overflow-y:auto;box-shadow:var(--shadow2);
+  border:1px solid rgba(201,168,76,.12);}
+.modal h3{font-size:1rem;font-weight:800;color:var(--navy);margin-bottom:20px;
+  padding-bottom:12px;border-bottom:2px solid var(--border2);}
+.modal-btns{display:flex;gap:10px;margin-top:22px;justify-content:flex-end;}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  color:#fff;padding:12px 22px;border-radius:12px;
+  font-size:.86rem;opacity:0;transition:all .3s;z-index:9999;
+  border-left:4px solid var(--gold);white-space:nowrap;
+  box-shadow:0 6px 24px rgba(10,31,68,.3);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 16px;color:#b0bac8;}
+.empty .ei{font-size:2.8rem;margin-bottom:10px;opacity:.6;}
+.empty p{font-size:.84rem;}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.kelas-select,.tgl-input,.search-input{
+  padding:9px 13px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:.86rem;outline:none;background:#fff;transition:border .2s;}
+.kelas-select:focus,.tgl-input:focus,.search-input:focus{
+  border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1);}
+.search-input{flex:1;min-width:180px;}
+
+/* PROGRESS BAR */
+.prog{background:#e8e8e8;border-radius:99px;height:7px;}
+.prog-fill{background:linear-gradient(90deg,var(--navy),var(--gold));
+  border-radius:99px;height:7px;transition:width .4s;}
+
+/* KELAS CARD */
+.kelas-card-header{display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;margin-bottom:14px;padding-bottom:12px;
+  border-bottom:1px solid var(--border2);}
+.kelas-card-title{font-size:.98rem;font-weight:800;color:var(--navy);}
+.kelas-card-sub{font-size:.73rem;color:#9aabb8;margin-top:2px;}
+
+@media(max-width:600px){
+  .auth-box{padding:30px 20px;}
+  .page{padding:14px 12px 80px;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .nav-tab{padding:12px 14px;font-size:.78rem;}
+  .topbar{padding:0 14px;}
+}
+</style>
+
+<!-- MISSKA v4.2 — Cloud Sync layer -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+.sync-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.78rem;color:#9aabb8;margin-top:8px}
+.sync-dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:#9aabb8}
+.sync-dot.online{background:#22c55e}.sync-dot.syncing{background:#3b82f6}.sync-dot.error{background:#ef4444}.sync-dot.offline{background:#f59e0b}
+.sync-card{margin-top:14px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.025)}
+.sync-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.sync-small{font-size:.7rem;color:#8fa0ad;line-height:1.55;margin-top:8px}
+.sync-last{font-size:.7rem;color:#9aabb8;margin-top:5px}
+</style>
+</head>
+<body>
+
+<!-- ===== REGISTER ===== -->
+<div class="auth-page active" id="registerPage">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="ic">📚</span>
+      <h1>MISSKA</h1>
+      <p class="tagline">Manajemen Kelas &amp; Nilai Guru</p>
+      <div class="gold-bar"></div>
+    </div>
+    <div class="auth-err" id="regErr"></div>
+    <div class="fg"><label>Nama Lengkap</label>
+      <input type="text" id="regNama" placeholder="Nama lengkap Anda"/></div>
+    <div class="fg"><label>Email</label>
+      <input type="email" id="regEmail" placeholder="email@sekolah.com"/></div>
+    <div class="fg"><label>Password</label>
+      <input type="password" id="regPass" placeholder="Min. 6 karakter"/></div>
+    <div class="fg"><label>Kode Aktivasi <span style="color:#e74c3c">*</span></label>
+      <input type="text" id="regKode" placeholder="Masukkan kode dari master"/>
+      <div style="font-size:.72rem;color:#aab;margin-top:4px;">Hubungi admin untuk mendapatkan kode aktivasi.</div>
+    </div>
+    <button class="btn btn-navy btn-full" onclick="doRegister()">🚀 Daftar Sekarang</button>
+    <div class="auth-switch">Sudah punya akun? <a onclick="showPage('login')">Masuk di sini</a></div>
+  </div>
+</div>
+
+<!-- ===== LOGIN ===== -->
+<div class="auth-page" id="loginPage">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="ic">📚</span>
+      <h1>MISSKA</h1>
+      <p class="tagline">Selamat datang kembali</p>
+      <div class="gold-bar"></div>
+    </div>
+    <div class="auth-err" id="loginErr"></div>
+    <div class="fg"><label>Email</label>
+      <input type="email" id="loginEmail" placeholder="email@sekolah.com"
+        onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="fg"><label>Password</label>
+      <input type="password" id="loginPass" placeholder="Password"
+        onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="btn btn-navy btn-full" onclick="doLogin()">🔐 Masuk</button>
+    <div class="auth-switch">Belum punya akun? <a onclick="showPage('register')">Daftar di sini</a></div>
+    <div class="auth-switch" style="margin-top:8px;">Lupa password? <a onclick="showPage('lupa')">Reset di sini</a></div>
+  </div>
+</div>
+
+<!-- ===== LUPA PASSWORD ===== -->
+<div class="auth-page" id="lupaPage">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="ic">🔑</span>
+      <h1>MISSKA</h1>
+      <p class="tagline">Reset Password</p>
+      <div class="gold-bar"></div>
+    </div>
+    <div class="auth-err" id="lupaErr"></div>
+    <div id="lupaSuccess" style="display:none;background:#e6f9ee;color:#1a7a3c;border-radius:9px;
+      padding:12px 14px;font-size:.84rem;margin-bottom:14px;border-left:3px solid #27ae60;"></div>
+    <div class="fg"><label>Email Akun</label>
+      <input type="email" id="lupaEmail" placeholder="Email yang terdaftar"/></div>
+    <div class="fg"><label>Kode Master <span style="color:var(--red)">*</span></label>
+      <input type="text" id="lupaKode" placeholder="Hubungi admin untuk kode master"/>
+      <div style="font-size:.72rem;color:#b0bac8;margin-top:4px;">Kode master hanya diketahui oleh admin aplikasi.</div>
+    </div>
+    <div class="fg"><label>Password Baru</label>
+      <input type="password" id="lupaPwBaru" placeholder="Min. 6 karakter"/></div>
+    <div class="fg"><label>Konfirmasi Password Baru</label>
+      <input type="password" id="lupaPwKonfirm" placeholder="Ulangi password baru"/></div>
+    <button class="btn btn-navy btn-full" onclick="doResetPassword()">🔑 Reset Password</button>
+    <div class="auth-switch" style="margin-top:12px;"><a onclick="showPage('login')">← Kembali ke Login</a></div>
+  </div>
+</div>
+
+<!-- ===== PENDING APPROVAL ===== -->
+<div id="pendingPage">
+  <div class="pending-box">
+    <div class="pi">⏳</div>
+    <h2>Menunggu Persetujuan</h2>
+    <p>Akun Anda sedang menunggu persetujuan dari master admin.<br><br>
+    Silakan hubungi admin dan berikan email Anda untuk proses aktivasi.</p>
+    <div class="pending-email-box">
+      Email: <strong id="pendingEmail">—</strong>
+    </div>
+    <button class="btn btn-ghost btn-full" style="margin-top:14px;" onclick="doLogout()">🚪 Keluar</button>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="appPage">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-brand">
+        <span class="logo-ic">📚</span>
+        <div class="topbar-brand-text">
+          <h1>MISSKA</h1>
+          <div class="sub">Aplikasi Guru</div>
+        </div>
+      </div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-user" id="topUserInfo">—</div>
+    </div>
+    <button class="btn-logout-top" onclick="doLogout()">🚪 Keluar</button>
+  </div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="navTo('dashboard',this)">🏠 Dashboard</div>
+    <div class="nav-tab" onclick="navTo('kelas',this)">🏫 Kelas & Siswa</div>
+    <div class="nav-tab" onclick="navTo('absensi',this)">✅ Absensi</div>
+    <div class="nav-tab" onclick="navTo('nilai',this)">📝 Nilai</div>
+    <div class="nav-tab" onclick="navTo('laporan',this)">📊 Laporan</div>
+    <div class="nav-tab" onclick="navTo('pengaturan',this)">⚙️ Pengaturan</div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-title">🏠 Dashboard</div>
+    <div class="stats-grid">
+      <div class="stat-card navy"><div class="si">🏫</div><div class="sv" id="ds-kelas">0</div><div class="sl">Kelas</div></div>
+      <div class="stat-card gold"><div class="si">👥</div><div class="sv" id="ds-siswa">0</div><div class="sl">Siswa</div></div>
+      <div class="stat-card green"><div class="si">📅</div><div class="sv" id="ds-absen">0</div><div class="sl">Sesi Absensi</div></div>
+      <div class="stat-card red"><div class="si">📝</div><div class="sv" id="ds-nilai">0</div><div class="sl">Kolom Nilai</div></div>
+    </div>
+    <div class="card">
+      <h3>📋 Rekap Kelas</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Kelas</th><th>Siswa</th><th>Sesi Absensi</th><th>Kolom Nilai</th></tr></thead>
+          <tbody id="dashKelasBody"><tr><td colspan="4"><div class="empty"><div class="ei">📭</div><p>Belum ada kelas.</p></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- KELAS & SISWA -->
+  <div class="page" id="page-kelas">
+    <div class="page-title">🏫 Kelas &amp; Siswa</div>
+    <div class="toolbar">
+      <button class="btn btn-navy btn-sm" onclick="openModalKelas()">➕ Tambah Kelas</button>
+      <div class="search-wrap">
+        <input class="search-input" id="searchSiswa" type="search" placeholder="🔎 Cari nama siswa..." oninput="renderKelas()"/>
+      </div>
+    </div>
+    <div id="kelasContainer"></div>
+  </div>
+
+  <!-- ABSENSI -->
+  <div class="page" id="page-absensi">
+    <div class="page-title">✅ Absensi</div>
+    <div class="toolbar">
+      <select class="kelas-select" id="absKelasSelect" onchange="loadAbsensi()"></select>
+      <input type="date" class="tgl-input" id="absTanggal" onchange="loadAbsensi()"/>
+      <button class="btn btn-gold btn-sm" onclick="simpanAbsensi()">💾 Simpan</button>
+    </div>
+    <div class="card" id="absCard">
+      <div class="empty"><div class="ei">📅</div><p>Pilih kelas dan tanggal.</p></div>
+    </div>
+  </div>
+
+  <!-- NILAI -->
+  <div class="page" id="page-nilai">
+    <div class="page-title">📝 Nilai</div>
+    <div class="toolbar">
+      <select class="kelas-select" id="nilaiKelasSelect" onchange="loadNilai()"></select>
+      <button class="btn btn-navy btn-sm" onclick="openModalKolomNilai()">➕ Tambah Kolom Nilai</button>
+    </div>
+    <div id="nilaiContainer">
+      <div class="empty"><div class="ei">📝</div><p>Pilih kelas untuk melihat nilai.</p></div>
+    </div>
+  </div>
+
+  <!-- LAPORAN -->
+  <div class="page" id="page-laporan">
+    <div class="page-title">📊 Laporan</div>
+    <div class="toolbar">
+      <select class="kelas-select" id="lapKelasSelect" onchange="loadLaporan()"></select>
+    </div>
+    <div id="lapContainer">
+      <div class="empty"><div class="ei">📊</div><p>Pilih kelas untuk melihat laporan.</p></div>
+    </div>
+  </div>
+
+  <!-- PENGATURAN -->
+  <div class="page" id="page-pengaturan">
+    <div class="page-title">⚙️ Pengaturan</div>
+    <div class="card">
+      <h3>👤 Info Akun</h3>
+      <div id="infoAkunBox" style="font-size:.88rem;color:var(--text);line-height:2.2;"></div>
+    </div>
+    <div class="card" id="cardMasterCode">
+      <h3>🔑 Kode Aktivasi Master</h3>
+      <p style="font-size:.8rem;color:#9aabb8;margin-bottom:16px;line-height:1.7;">
+        Kode ini digunakan guru baru saat mendaftar. Edit file <strong>config.json</strong> di GitHub untuk mengubahnya — semua HP yang online akan otomatis pakai kode baru.
+      </p>
+      <div style="background:var(--offwhite);border:1.5px solid var(--border2);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+        <div style="font-size:.7rem;color:#9aabb8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Kode Aktif Saat Ini</div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--navy);letter-spacing:2px;" id="displayMasterCode">—</div>
+        <div style="font-size:.72rem;color:#b0bac8;margin-top:4px;">Diambil dari config.json di GitHub saat online.</div>
+      </div>
+      <div style="background:#fff8e6;border:1.5px solid rgba(201,168,76,.3);border-radius:10px;padding:14px 16px;">
+        <div style="font-size:.78rem;font-weight:700;color:var(--gold2);margin-bottom:10px;">📋 Cara Ubah Kode Master:</div>
+        <ol style="font-size:.78rem;color:#7a8aaa;line-height:2.2;padding-left:18px;">
+          <li>Buka: <a href="https://github.com/inkanabilafriskilahay/haripertamabelajar/blob/main/config.json" target="_blank" style="color:var(--gold2);font-weight:700;">config.json di GitHub ↗</a></li>
+          <li>Klik ikon ✏️ (Edit file)</li>
+          <li>Ubah nilai <code style="background:#f0e8d0;padding:1px 6px;border-radius:4px;">"masterCode"</code></li>
+          <li>Klik <strong>Commit changes</strong></li>
+          <li>Semua HP yang online otomatis pakai kode baru</li>
+        </ol>
+      </div>
+    </div>
+    <div class="card">
+      <h3>🎯 KKM / Batas Ketuntasan</h3>
+      <div class="fg"><label>Nilai KKM</label>
+        <input type="number" id="settingKKM" min="0" max="100" step="1" placeholder="Contoh: 75"/>
+        <div class="form-note">Nilai rata-rata ≥ KKM akan ditandai <strong>Tuntas</strong> pada laporan.</div>
+      </div>
+      <button class="btn btn-navy btn-sm" onclick="simpanKKM()">💾 Simpan KKM</button>
+    </div>
+    <div class="card">
+      <h3>💾 Backup &amp; Restore Data</h3>
+      <p style="font-size:.8rem;color:#9aabb8;line-height:1.7;margin-bottom:14px;">
+        Simpan seluruh data MISSKA akun ini ke file JSON. Gunakan file tersebut untuk memulihkan data di browser lain.
+      </p>
+      
+<div class="card sync-card">
+  <div class="card-title">☁️ Cloud Sync — MISSKA v4.2</div>
+  <div class="form-note">Data MISSKA tetap bisa dipakai offline. Akun cloud menggunakan email/password MISSKA yang sedang login. Jika koneksi tersedia, data dapat disimpan ke database cloud dan diambil kembali dari laptop/HP lain yang memakai akun yang sama.</div>
+  <div class="fg"><label>Supabase Project URL</label><input type="url" id="syncSupabaseUrl" placeholder="https://xxxx.supabase.co" autocomplete="off"></div>
+  <div class="fg"><label>Supabase Publishable / Anon Key</label><input type="password" id="syncSupabaseKey" placeholder="eyJ..." autocomplete="off"></div>
+  <div class="fg"><label>ID Sinkronisasi</label><input type="text" id="syncWorkspaceId" placeholder="Contoh: sekolah-a / nama-guru" maxlength="80" autocomplete="off"><div class="form-note">Gunakan ID yang sama di laptop dan HP. Jangan gunakan password sebagai ID.</div></div>
+  <div class="sync-actions">
+    <button class="btn btn-navy btn-sm" onclick="saveCloudConfig()">💾 Simpan Konfigurasi</button>
+    <button class="btn btn-sm" onclick="testCloudConnection()">🔌 Tes Koneksi</button>
+    <button class="btn btn-sm" onclick="syncToCloud()">☁️ Simpan &amp; Sinkronkan</button>
+    <button class="btn btn-sm" onclick="pullFromCloud()">🔄 Ambil Data Cloud</button>
+  </div>
+  <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span id="syncStatusText">Cloud Sync belum dikonfigurasi</span></div>
+  <div class="sync-last" id="syncLastText">Belum pernah sinkron.</div>
+  <div class="sync-small">MISSKA tetap menyimpan data lokal. Tombol cloud hanya mengirim atau mengambil salinan database pengguna.</div>
+</div>
+<div class="backup-grid">
+        <button class="btn btn-gold btn-sm" onclick="backupData()">⬇️ Backup Data</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('restoreFile').click()">⬆️ Restore Data</button>
+        <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreData(event)"/>
+      </div>
+    </div>
+    <div class="card">
+      <h3>🔒 Ganti Password Akun</h3>
+      <div class="fg"><label>Password Lama</label>
+        <input type="password" id="pwLama" placeholder="Password saat ini"/></div>
+      <div class="fg"><label>Password Baru</label>
+        <input type="password" id="pwBaru" placeholder="Min. 6 karakter"/></div>
+      <div class="fg"><label>Konfirmasi Password Baru</label>
+        <input type="password" id="pwKonfirm" placeholder="Ulangi password baru"/></div>
+      <div class="auth-err" id="pwErr" style="margin-bottom:0;"></div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-navy btn-sm" onclick="gantiPassword()">💾 Simpan Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Modal Kelas -->
+<div class="modal-overlay" id="modalKelas">
+  <div class="modal">
+    <h3 id="mKelasTitle">Tambah Kelas</h3>
+    <div class="fg"><label>Nama Kelas</label><input type="text" id="mKNama" placeholder="Contoh: X IPA 1"/></div>
+    <div class="fg"><label>Wali Kelas (opsional)</label><input type="text" id="mKWali" placeholder="Nama wali kelas"/></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modalKelas')">Batal</button>
+      <button class="btn btn-navy btn-sm" onclick="saveKelas()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Siswa -->
+<div class="modal-overlay" id="modalSiswa">
+  <div class="modal">
+    <h3 id="mSiswaTitle">Tambah Siswa</h3>
+    <div class="fg"><label>No. Absen</label><input type="number" id="mSNo" min="1" max="999" placeholder="Contoh: 1"/></div>
+    <div class="fg"><label>Nama Lengkap</label><input type="text" id="mSNama" placeholder="Nama siswa"/></div>
+    <div class="fg"><label>Jenis Kelamin</label>
+      <select id="mSJK"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modalSiswa')">Batal</button>
+      <button class="btn btn-navy btn-sm" onclick="saveSiswa()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Import Excel -->
+<div class="modal-overlay" id="modalImport">
+  <div class="modal">
+    <h3>Import Siswa dari Excel</h3>
+    <p style="font-size:.8rem;color:#7a8aaa;margin-bottom:14px;">
+      Format Excel: Kolom A = Nama Siswa, Kolom B = L/P (baris pertama = header, diabaikan)
+    </p>
+    <div class="fg"><label>File Excel (.xlsx)</label>
+      <input type="file" id="excelFile" accept=".xlsx,.xls" onchange="previewExcel(event)"/>
+    </div>
+    <div id="excelPreview" style="display:none;">
+      <div style="font-size:.8rem;font-weight:700;color:var(--navy);margin-bottom:6px;">
+        Preview: <span id="excelCount">0</span> siswa ditemukan
+      </div>
+      <div style="max-height:160px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px;">
+        <div id="excelList" style="font-size:.78rem;"></div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modalImport')">Batal</button>
+      <button class="btn btn-navy btn-sm" id="btnImport" onclick="konfirmasiImport()" style="display:none;">📥 Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Paste Nama -->
+<div class="modal-overlay" id="modalPaste">
+  <div class="modal">
+    <h3>Input Banyak Nama Sekaligus</h3>
+    <div class="fg"><label>Jenis Kelamin Default</label>
+      <select id="pasteJK"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
+    </div>
+    <div class="fg"><label>Nama Siswa (satu per baris)</label>
+      <textarea id="pasteNama" rows="7" placeholder="Ahmad&#10;Budi&#10;Siti&#10;..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modalPaste')">Batal</button>
+      <button class="btn btn-navy btn-sm" onclick="konfirmasiPaste()">📥 Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Kolom Nilai -->
+<div class="modal-overlay" id="modalKolomNilai">
+  <div class="modal">
+    <h3>Tambah Kolom Nilai</h3>
+    <div class="fg"><label>Nama Kolom Nilai</label>
+      <input type="text" id="mKolomNama" placeholder="Contoh: UH 1, Tugas 3, UAS, dll"/></div>
+    <div class="fg"><label>Bobot (%)</label>
+      <input type="number" id="mKolomBobot" placeholder="Contoh: 20" min="0" max="100"/></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modalKolomNilai')">Batal</button>
+      <button class="btn btn-navy btn-sm" onclick="saveKolomNilai()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// STORAGE KEY — tiap akun punya data sendiri
+// ============================================================
+const APP_KEY = 'misska_v3';
+let MASTER_CODE = localStorage.getItem('misska_master_code') || 'MISSKA2025';
+const CONFIG_URL = 'https://inkanabilafriskilahay.github.io/haripertamabelajar/config.json';
+
+// Fetch kode terbaru dari GitHub saat online
+function fetchMasterCode(){
+  fetch(CONFIG_URL + '?t=' + Date.now())
+    .then(r => r.json())
+    .then(cfg => {
+      if(cfg && cfg.masterCode){
+        MASTER_CODE = cfg.masterCode;
+        localStorage.setItem('misska_master_code', cfg.masterCode);
+      }
+    })
+    .catch(() => {}); // offline — pakai kode lokal
+}
+
+function getKey(uid){ return APP_KEY + '_' + uid; }
+
+function getDB(uid){
+  const d = localStorage.getItem(getKey(uid));
+  let db;
+  try { db = d ? JSON.parse(d) : null; } catch(e) { db = null; }
+  if(!db) db = { kelas:[], siswa:[], absensi:{}, nilaiKolom:{}, nilaiData:{}, settings:{kkm:75} };
+  db.kelas = Array.isArray(db.kelas) ? db.kelas : [];
+  db.siswa = Array.isArray(db.siswa) ? db.siswa : [];
+  db.absensi = db.absensi && typeof db.absensi==='object' ? db.absensi : {};
+  db.nilaiKolom = db.nilaiKolom && typeof db.nilaiKolom==='object' ? db.nilaiKolom : {};
+  db.nilaiData = db.nilaiData && typeof db.nilaiData==='object' ? db.nilaiData : {};
+  db.settings = db.settings && typeof db.settings==='object' ? db.settings : {};
+  if(db.settings.kkm===undefined) db.settings.kkm=75;
+
+  // Migrasi nomor absen lama agar stabil dan tidak berubah saat siswa dihapus.
+  db.kelas.forEach(k=>{
+    const list=db.siswa.filter(s=>s.kelasId===k.id);
+    const used=new Set();
+    list.forEach((s,i)=>{
+      let n=parseInt(s.noAbsen);
+      if(!Number.isInteger(n)||n<1||used.has(n)) n=i+1;
+      s.noAbsen=n; used.add(n);
+    });
+  });
+  return db;
+}
+function saveDB(uid, db){ localStorage.setItem(getKey(uid), JSON.stringify(db)); }
+
+// ============================================================
+// USERS (akun guru tersimpan di localStorage global)
+// ============================================================
+function getUsers(){
+  const d = localStorage.getItem('misska_users');
+  return d ? JSON.parse(d) : {};
+}
+function saveUsers(u){ localStorage.setItem('misska_users', JSON.stringify(u)); }
+
+function esc(str){
+  return String(str ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function getUserByEmail(email){
+  const users = getUsers();
+  return Object.values(users).find(u => u.email === email) || null;
+}
+
+// ============================================================
+// AUTH STATE
+// ============================================================
+let CU = null; // current user {id, email, nama, approved}
+
+function doRegister(){
+  const nama = document.getElementById('regNama').value.trim();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('regPass').value;
+  const kode = document.getElementById('regKode').value.trim();
+  const errEl = document.getElementById('regErr');
+  errEl.style.display = 'none';
+
+  if(!nama || !email || !pass){
+    showErr(errEl, 'Semua field wajib diisi.'); return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    showErr(errEl, 'Format email tidak valid.'); return;
+  }
+  if(pass.length < 6){
+    showErr(errEl, 'Password minimal 6 karakter.'); return;
+  }
+  if(kode !== MASTER_CODE){
+    showErr(errEl, 'Kode aktivasi salah. Hubungi master admin.'); return;
+  }
+  if(getUserByEmail(email)){
+    showErr(errEl, 'Email sudah terdaftar.'); return;
+  }
+
+  const uid = 'u_' + Date.now();
+  const users = getUsers();
+  users[uid] = { id:uid, email, password:pass, nama, approved:true, createdAt:Date.now() };
+  saveUsers(users);
+
+  // auto login
+  CU = users[uid];
+  sessionStorage.setItem('misska_cu', JSON.stringify(CU));
+  showApp();
+  toast('✅ Akun berhasil dibuat! Selamat datang, '+nama.split(' ')[0]+'!');
+}
+
+function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display = 'none';
+
+  if(!email || !pass){ showErr(errEl, 'Email dan password wajib diisi.'); return; }
+
+  const user = getUserByEmail(email);
+  if(!user || user.password !== pass){
+    showErr(errEl, 'Email atau password salah.'); return;
+  }
+
+  CU = user;
+  sessionStorage.setItem('misska_cu', JSON.stringify(CU));
+
+  if(!CU.approved){
+    showPending(); return;
+  }
+  showApp();
+}
+
+function doResetPassword(){
+  const email=document.getElementById('lupaEmail').value.trim().toLowerCase();
+  const kode=document.getElementById('lupaKode').value.trim();
+  const baru=document.getElementById('lupaPwBaru').value;
+  const konfirm=document.getElementById('lupaPwKonfirm').value;
+  const errEl=document.getElementById('lupaErr');
+  const okEl=document.getElementById('lupaSuccess');
+  errEl.style.display='none'; okEl.style.display='none';
+  if(!email||!kode||!baru||!konfirm){showErr(errEl,'Semua field wajib diisi.');return;}
+  if(kode!==MASTER_CODE){showErr(errEl,'Kode master salah.');return;}
+  if(baru.length<6){showErr(errEl,'Password baru minimal 6 karakter.');return;}
+  if(baru!==konfirm){showErr(errEl,'Konfirmasi password tidak cocok.');return;}
+  const users=getUsers(); const user=Object.values(users).find(u=>u.email===email);
+  if(!user){showErr(errEl,'Email tidak ditemukan.');return;}
+  user.password=baru; saveUsers(users);
+  okEl.textContent='✅ Password berhasil direset. Silakan kembali ke halaman login.';
+  okEl.style.display='block';
+  ['lupaEmail','lupaKode','lupaPwBaru','lupaPwKonfirm'].forEach(id=>document.getElementById(id).value='');
+}
+
+function doLogout(){
+  sessionStorage.removeItem('misska_cu');
+  CU = null;
+  showPage('login');
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+function showErr(el, msg){ el.textContent = msg; el.style.display = 'block'; }
+
+// ============================================================
+// SHOW / HIDE PAGES
+// ============================================================
+function showPage(p){
+  document.querySelectorAll('.auth-page').forEach(el=>{el.classList.remove('active');el.style.display='none';});
+  document.getElementById('pendingPage').style.display='none';
+  document.getElementById('appPage').style.display='none';
+
+  if(p==='register'){
+    document.getElementById('registerPage').style.display='flex';
+    document.getElementById('registerPage').classList.add('active');
+  } else if(p==='login'){
+    document.getElementById('loginPage').style.display='flex';
+    document.getElementById('loginPage').classList.add('active');
+  } else if(p==='lupa'){
+    document.getElementById('lupaPage').style.display='flex';
+    document.getElementById('lupaPage').classList.add('active');
+    ['lupaEmail','lupaKode','lupaPwBaru','lupaPwKonfirm'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('lupaErr').style.display='none';
+    document.getElementById('lupaSuccess').style.display='none';
+  }
+}
+
+function showPending(){
+  document.querySelectorAll('.auth-page').forEach(el=>{el.classList.remove('active');el.style.display='none';});
+  document.getElementById('pendingPage').style.display='flex';
+  document.getElementById('pendingEmail').textContent = CU.email;
+}
+
+function showApp(){
+  document.querySelectorAll('.auth-page').forEach(el=>{el.classList.remove('active');el.style.display='none';});
+  document.getElementById('pendingPage').style.display='none';
+  document.getElementById('appPage').style.display='block';
+  document.getElementById('topUserInfo').innerHTML = '<strong>'+esc(CU.nama)+'</strong> · '+esc(CU.email);
+  populateKelasSelects();
+  renderDashboard();
+  // set tanggal hari ini
+  document.getElementById('absTanggal').value = new Date().toISOString().split('T')[0];
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function navTo(page, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el) el.classList.add('active');
+  if(page==='dashboard') renderDashboard();
+  if(page==='kelas') renderKelas();
+  if(page==='absensi') loadAbsensi();
+  if(page==='nilai') loadNilai();
+  if(page==='laporan') loadLaporan();
+  if(page==='pengaturan') loadPengaturan();
+}
+
+// ============================================================
+// POPULATE SELECTS
+// ============================================================
+function populateKelasSelects(){
+  const db = getDB(CU.id);
+  const opts = db.kelas.length
+    ? db.kelas.map(k=>`<option value="${k.id}">${k.nama}</option>`).join('')
+    : '<option value="">— Belum ada kelas —</option>';
+  ['absKelasSelect','nilaiKelasSelect','lapKelasSelect'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = opts;
+  });
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard(){
+  const db = getDB(CU.id);
+  const totalSesi = Object.keys(db.absensi).length;
+  const totalKolom = Object.values(db.nilaiKolom).reduce((a,v)=>a+(v?v.length:0),0);
+  document.getElementById('ds-kelas').textContent = db.kelas.length;
+  document.getElementById('ds-siswa').textContent = db.siswa.length;
+  document.getElementById('ds-absen').textContent = totalSesi;
+  document.getElementById('ds-nilai').textContent = totalKolom;
+
+  document.getElementById('dashKelasBody').innerHTML = db.kelas.length
+    ? db.kelas.map(k=>{
+        const jml = db.siswa.filter(s=>s.kelasId===k.id).length;
+        const sesi = Object.keys(db.absensi).filter(key=>key.startsWith(k.id+'_')).length;
+        const kolom = (db.nilaiKolom[k.id]||[]).length;
+        return `<tr>
+          <td class="tl"><strong>${esc(k.nama)}</strong>${k.wali?'<br><small style="color:#aab;">'+k.wali+'</small>':''}</td>
+          <td>${jml}</td><td>${sesi}</td><td>${kolom}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="4"><div class="empty"><div class="ei">📭</div><p>Belum ada kelas.</p></div></td></tr>';
+}
+
+// ============================================================
+// KELAS & SISWA
+// ============================================================
+let _editKelasId = null;
+let _editSiswaId = null;
+let _activeSiswaKelasId = null;
+let _pendingExcel = [];
+
+function renderKelas(){
+  const db = getDB(CU.id);
+  const cont = document.getElementById('kelasContainer');
+  const q = (document.getElementById('searchSiswa')?.value||'').trim().toLowerCase();
+  if(!db.kelas.length){
+    cont.innerHTML = '<div class="empty"><div class="ei">🏫</div><p>Belum ada kelas. Klik "Tambah Kelas" untuk mulai.</p></div>';
+    return;
+  }
+  cont.innerHTML = db.kelas.map(k=>{
+    const all = db.siswa.filter(s=>s.kelasId===k.id);
+    const siswaList = q ? all.filter(s=>s.nama.toLowerCase().includes(q)) : all;
+    return `
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+        <div>
+          <div style="font-size:.95rem;font-weight:800;color:var(--navy);">🏫 ${esc(k.nama)}</div>
+          ${k.wali?`<div style="font-size:.75rem;color:#7a8aaa;">Wali: ${esc(k.wali)}</div>`:''}
+          ${q?`<div style="font-size:.7rem;color:#9aabb8;margin-top:3px;">Menampilkan ${siswaList.length} dari ${all.length} siswa</div>`:''}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" onclick="openModalSiswa('${k.id}')">➕ Siswa</button>
+          <button class="btn btn-ghost btn-sm" onclick="openModalPaste('${k.id}')">📋 Paste Nama</button>
+          <button class="btn btn-ghost btn-sm" onclick="openImportExcel('${k.id}')">📊 Import Excel</button>
+          <button class="btn btn-ghost btn-sm" onclick="editKelas('${k.id}')">✏️ Edit</button>
+          <button class="btn btn-red btn-sm" onclick="hapusKelas('${k.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        ${siswaList.length ? `
+        <table>
+          <thead><tr><th>No</th><th>Nama Siswa</th><th>JK</th><th>Aksi</th></tr></thead>
+          <tbody>${siswaList.sort((a,b)=>(a.noAbsen||999)-(b.noAbsen||999)).map(s=>`
+            <tr>
+              <td>${s.noAbsen||'—'}</td>
+              <td class="tl">${esc(s.nama)}</td>
+              <td>${s.jk==='L'?'L':'P'}</td>
+              <td>
+                <button class="btn btn-ghost btn-sm" onclick="editSiswa('${s.id}')">✏️</button>
+                <button class="btn btn-red btn-sm" onclick="hapusSiswa('${s.id}')">🗑️</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>` : `<div class="empty"><div class="ei">🔎</div><p>${q?'Siswa yang dicari tidak ditemukan.':'Belum ada siswa di kelas ini.'}</p></div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModalKelas(){
+  _editKelasId = null;
+  document.getElementById('mKelasTitle').textContent = 'Tambah Kelas';
+  document.getElementById('mKNama').value = '';
+  document.getElementById('mKWali').value = '';
+  openModal('modalKelas');
+}
+
+function editKelas(id){
+  const db = getDB(CU.id);
+  const k = db.kelas.find(x=>x.id===id);
+  if(!k) return;
+  _editKelasId = id;
+  document.getElementById('mKelasTitle').textContent = 'Edit Kelas';
+  document.getElementById('mKNama').value = k.nama;
+  document.getElementById('mKWali').value = k.wali||'';
+  openModal('modalKelas');
+}
+
+function saveKelas(){
+  const nama = document.getElementById('mKNama').value.trim();
+  if(!nama){ alert('Nama kelas wajib diisi.'); return; }
+  const db = getDB(CU.id);
+  if(_editKelasId){
+    const k = db.kelas.find(x=>x.id===_editKelasId);
+    if(k){ k.nama=nama; k.wali=document.getElementById('mKWali').value.trim(); }
+    toast('✅ Kelas diperbarui.');
+  } else {
+    const id = 'k_'+Date.now();
+    db.kelas.push({id, nama, wali:document.getElementById('mKWali').value.trim()});
+    toast('✅ Kelas ditambahkan.');
+  }
+  saveDB(CU.id, db);
+  closeModal('modalKelas');
+  renderKelas();
+  populateKelasSelects();
+  renderDashboard();
+}
+
+function hapusKelas(id){
+  if(!confirm('Hapus kelas ini beserta semua data siswa di dalamnya?')) return;
+  const db = getDB(CU.id);
+  db.kelas = db.kelas.filter(k=>k.id!==id);
+  db.siswa = db.siswa.filter(s=>s.kelasId!==id);
+  // hapus absensi & nilai kelas ini
+  Object.keys(db.absensi).filter(k=>k.startsWith(id+'_')).forEach(k=>delete db.absensi[k]);
+  delete db.nilaiKolom[id];
+  delete db.nilaiData[id];
+  saveDB(CU.id, db);
+  renderKelas();
+  populateKelasSelects();
+  renderDashboard();
+  toast('🗑️ Kelas dihapus.');
+}
+
+function openModalSiswa(kelasId){
+  _editSiswaId = null;
+  _activeSiswaKelasId = kelasId;
+  document.getElementById('mSiswaTitle').textContent = 'Tambah Siswa';
+  document.getElementById('mSNo').value = '';
+  document.getElementById('mSNama').value = '';
+  document.getElementById('mSJK').value = 'L';
+  openModal('modalSiswa');
+}
+
+function editSiswa(id){
+  const db = getDB(CU.id);
+  const s = db.siswa.find(x=>x.id===id);
+  if(!s) return;
+  _editSiswaId = id;
+  _activeSiswaKelasId = s.kelasId;
+  document.getElementById('mSiswaTitle').textContent = 'Edit Siswa';
+  document.getElementById('mSNo').value = s.noAbsen||'';
+  document.getElementById('mSNama').value = s.nama;
+  document.getElementById('mSJK').value = s.jk;
+  openModal('modalSiswa');
+}
+
+function saveSiswa(){
+  const nama = document.getElementById('mSNama').value.trim();
+  const noRaw = document.getElementById('mSNo').value;
+  if(!nama){ alert('Nama siswa wajib diisi.'); return; }
+  const db = getDB(CU.id);
+  const kelasSiswa=db.siswa.filter(s=>s.kelasId===_activeSiswaKelasId && s.id!==_editSiswaId);
+  let no=noRaw?parseInt(noRaw):null;
+  if(no!==null && (!Number.isInteger(no)||no<1)){alert('No. absen harus berupa angka minimal 1.');return;}
+  if(no!==null && kelasSiswa.some(s=>s.noAbsen===no)){alert('No. absen tersebut sudah digunakan di kelas ini.');return;}
+  if(_editSiswaId){
+    const s = db.siswa.find(x=>x.id===_editSiswaId);
+    if(s){ s.nama=nama; s.jk=document.getElementById('mSJK').value; if(no!==null)s.noAbsen=no; }
+    toast('✅ Siswa diperbarui.');
+  } else {
+    if(no===null){
+      const used=kelasSiswa.map(s=>parseInt(s.noAbsen)||0);
+      no=1; while(used.includes(no)) no++;
+    }
+    db.siswa.push({id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2),nama,jk:document.getElementById('mSJK').value,kelasId:_activeSiswaKelasId,noAbsen:no});
+    toast('✅ Siswa ditambahkan.');
+  }
+  saveDB(CU.id, db);
+  closeModal('modalSiswa');
+  renderKelas();
+  renderDashboard();
+}
+
+function hapusSiswa(id){
+  if(!confirm('Hapus siswa ini?')) return;
+  const db = getDB(CU.id);
+  const target = db.siswa.find(s=>s.id===id);
+  db.siswa = db.siswa.filter(s=>s.id!==id);
+  if(target){
+    Object.keys(db.absensi).forEach(key=>{ if(db.absensi[key]) delete db.absensi[key][id]; });
+    Object.keys(db.nilaiData).forEach(kid=>{ if(db.nilaiData[kid]) delete db.nilaiData[kid][id]; });
+  }
+  saveDB(CU.id, db);
+  renderKelas();
+  renderDashboard();
+  toast('🗑️ Siswa dihapus.');
+}
+
+// PASTE NAMA
+function openModalPaste(kelasId){
+  _activeSiswaKelasId = kelasId;
+  document.getElementById('pasteNama').value = '';
+  document.getElementById('pasteJK').value = 'L';
+  openModal('modalPaste');
+}
+
+function konfirmasiPaste(){
+  const raw = document.getElementById('pasteNama').value;
+  const jk = document.getElementById('pasteJK').value;
+  const names = raw.split('\n').map(n=>n.trim()).filter(n=>n.length>0);
+  if(!names.length){ alert('Tidak ada nama yang dimasukkan.'); return; }
+  const db = getDB(CU.id);
+  let nextNo=Math.max(0,...db.siswa.filter(s=>s.kelasId===_activeSiswaKelasId).map(s=>parseInt(s.noAbsen)||0))+1;
+  names.forEach(nama=>{
+    if(db.siswa.some(s=>s.kelasId===_activeSiswaKelasId && s.nama.toLowerCase()===nama.toLowerCase())) return;
+    db.siswa.push({id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2),nama,jk,kelasId:_activeSiswaKelasId,noAbsen:nextNo++});
+  });
+  saveDB(CU.id, db);
+  closeModal('modalPaste');
+  renderKelas();
+  renderDashboard();
+  toast(`✅ ${names.length} siswa ditambahkan.`);
+}
+
+// IMPORT EXCEL
+function openImportExcel(kelasId){
+  _activeSiswaKelasId = kelasId;
+  _pendingExcel = [];
+  document.getElementById('excelFile').value = '';
+  document.getElementById('excelPreview').style.display = 'none';
+  document.getElementById('btnImport').style.display = 'none';
+  openModal('modalImport');
+}
+
+function previewExcel(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const wb = XLSX.read(ev.target.result, {type:'binary'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      const warnings=[];
+      _pendingExcel = rows.slice(1).map((r,idx)=>{
+        const nama=String(r[0]||'').trim();
+        const jkRaw=String(r[1]||'L').trim().toUpperCase();
+        if(jkRaw && !['L','P'].includes(jkRaw)) warnings.push(`Baris ${idx+2}: JK "${jkRaw}" dianggap L.`);
+        return {nama,jk:['L','P'].includes(jkRaw)?jkRaw:'L'};
+      }).filter(r=>r.nama);
+      if(warnings.length) toast('⚠️ '+warnings.slice(0,2).join(' '));
+      document.getElementById('excelCount').textContent = _pendingExcel.length;
+      document.getElementById('excelList').innerHTML = _pendingExcel.map(r=>`<div>${r.nama} (${r.jk})</div>`).join('');
+      document.getElementById('excelPreview').style.display = 'block';
+      document.getElementById('btnImport').style.display = _pendingExcel.length ? 'inline-flex' : 'none';
+    } catch(err){ alert('Gagal membaca file Excel.'); }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function konfirmasiImport(){
+  if(!_pendingExcel.length) return;
+  const db = getDB(CU.id);
+  let nextNo=Math.max(0,...db.siswa.filter(s=>s.kelasId===_activeSiswaKelasId).map(s=>parseInt(s.noAbsen)||0))+1;
+  let added=0;
+  _pendingExcel.forEach(r=>{
+    if(db.siswa.some(s=>s.kelasId===_activeSiswaKelasId && s.nama.toLowerCase()===r.nama.toLowerCase())) return;
+    db.siswa.push({id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2),nama:r.nama,jk:r.jk==='P'?'P':'L',kelasId:_activeSiswaKelasId,noAbsen:nextNo++});
+    added++;
+  });
+  saveDB(CU.id, db);
+  closeModal('modalImport');
+  renderKelas();
+  renderDashboard();
+  toast(`✅ ${added} siswa diimport${added<_pendingExcel.length?' (duplikat dilewati)':''}.`);
+}
+
+// ============================================================
+// ABSENSI
+// ============================================================
+function loadAbsensi(){
+  const kid = document.getElementById('absKelasSelect').value;
+  const tgl = document.getElementById('absTanggal').value;
+  const db = getDB(CU.id);
+  const siswaList = db.siswa.filter(s=>s.kelasId===kid);
+  const card = document.getElementById('absCard');
+
+  if(!kid || !tgl){
+    card.innerHTML = '<div class="empty"><div class="ei">📅</div><p>Pilih kelas dan tanggal.</p></div>'; return;
+  }
+  if(!siswaList.length){
+    card.innerHTML = '<div class="empty"><div class="ei">👤</div><p>Belum ada siswa di kelas ini.</p></div>'; return;
+  }
+
+  const key = kid+'_'+tgl;
+  const saved = (db.absensi[key]||{});
+
+  card.innerHTML = `
+    <div style="font-size:.85rem;font-weight:700;color:var(--navy);margin-bottom:12px;">
+      ${db.kelas.find(k=>k.id===kid)?.nama||''} — ${formatTgl(tgl)}
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>No</th><th>Nama Siswa</th><th>Kehadiran</th></tr></thead>
+        <tbody>
+          ${siswaList.map((s,i)=>{
+            const st = saved[s.id]||'';
+            return `<tr>
+              <td>${i+1}</td>
+              <td class="tl">${s.nama}</td>
+              <td>
+                <div class="abs-btn-group">
+                  ${['Hadir','Izin','Sakit','Alfa'].map(v=>`
+                    <button class="abs-btn ${v.toLowerCase()} ${st===v?'active-btn':''}"
+                      id="abs_${s.id}_${v}"
+                      onclick="setAbsen('${s.id}','${v}','${kid}','${tgl}')">
+                      ${v}
+                    </button>`).join('')}
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  // highlight tombol aktif
+  siswaList.forEach(s=>{
+    const st = saved[s.id]||'Hadir';
+    highlightAbsen(s.id, st || null);
+  });
+}
+
+function setAbsen(sid, status, kid, tgl){
+  const db = getDB(CU.id);
+  const key = kid+'_'+tgl;
+  if(!db.absensi[key]) db.absensi[key] = {};
+  db.absensi[key][sid] = status;
+  saveDB(CU.id, db);
+  highlightAbsen(sid, status);
+}
+
+function highlightAbsen(sid, status){
+  ['Hadir','Izin','Sakit','Alfa'].forEach(v=>{
+    const btn = document.getElementById('abs_'+sid+'_'+v);
+    if(btn){
+      btn.classList.toggle('active-btn', v===status);
+      btn.style.opacity = status ? (v===status ? '1' : '0.35') : '0.5';
+      btn.style.transform = status && v===status ? 'scale(1.08)' : 'scale(1)';
+    }
+  });
+}
+
+function simpanAbsensi(){
+  toast('✅ Absensi tersimpan otomatis!');
+}
+
+function formatTgl(tgl){
+  const d = new Date(tgl);
+  return d.toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+// ============================================================
+// NILAI
+// ============================================================
+function loadNilai(){
+  const kid = document.getElementById('nilaiKelasSelect').value;
+  const db = getDB(CU.id);
+  const siswaList = db.siswa.filter(s=>s.kelasId===kid);
+  const kolom = db.nilaiKolom[kid]||[];
+  const cont = document.getElementById('nilaiContainer');
+
+  if(!kid){
+    cont.innerHTML = '<div class="empty"><div class="ei">📝</div><p>Pilih kelas.</p></div>'; return;
+  }
+  if(!siswaList.length){
+    cont.innerHTML = '<div class="empty"><div class="ei">👤</div><p>Belum ada siswa di kelas ini.</p></div>'; return;
+  }
+
+  const namaKelas = db.kelas.find(k=>k.id===kid)?.nama||'';
+  let html = `<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+      <div style="font-weight:700;color:var(--navy);">${namaKelas}</div>
+    </div>`;
+
+  if(!kolom.length){
+    html += '<div class="empty"><div class="ei">📋</div><p>Belum ada kolom nilai. Klik "Tambah Kolom Nilai".</p></div>';
+  } else {
+    html += `
+    <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;">
+      ${kolom.map((kol,i)=>`
+        <span class="badge badge-blue" style="cursor:default;">
+          ${kol.nama}${kol.bobot?` (${kol.bobot}%)`:''}
+          <span onclick="hapusKolom('${kid}',${i})" style="margin-left:5px;cursor:pointer;color:#e74c3c;">✕</span>
+        </span>`).join('')}
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>No</th><th>Nama Siswa</th>
+        ${kolom.map(kol=>`<th>${kol.nama}</th>`).join('')}
+        <th>Rata-rata</th>
+      </tr></thead>
+      <tbody>
+        ${siswaList.map((s,i)=>{
+          const nilaiRow = (db.nilaiData[kid]||{})[s.id]||{};
+          const vals = kolom.map((kol,ci)=>{
+            const v = nilaiRow[ci]!==undefined ? nilaiRow[ci] : '';
+            return `<td><input class="nilai-input" type="number" min="0" max="100"
+              value="${v}" data-sid="${s.id}" data-kid="${kid}" data-ci="${ci}"
+              onchange="saveNilai(this)"/></td>`;
+          });
+          const avg = hitungRataRata(kolom, nilaiRow);
+          return `<tr>
+            <td>${i+1}</td>
+            <td class="tl">${s.nama}</td>
+            ${vals.join('')}
+            <td><strong id="avg_${kid}_${s.id}">${avg!==null?avg:'—'}</strong></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>`;
+  }
+  html += '</div>';
+  cont.innerHTML = html;
+}
+
+function hitungRataRata(kolom, nilaiRow){
+  if(!kolom.length) return null;
+  const totalBobot = kolom.reduce((a,k)=>a+(parseFloat(k.bobot)||0),0);
+  if(totalBobot > 0){
+    // bobot tertimbang
+    let sum = 0, totalB = 0;
+    kolom.forEach((kol,i)=>{
+      const v = parseFloat(nilaiRow[i]);
+      const b = parseFloat(kol.bobot)||0;
+      if(!isNaN(v) && b > 0){ sum += v*b; totalB += b; }
+    });
+    if(totalB === 0) return null;
+    return Math.round(sum/totalB*10)/10;
+  } else {
+    // rata biasa
+    const nums = kolom.map((_,i)=>parseFloat(nilaiRow[i])).filter(v=>!isNaN(v));
+    if(!nums.length) return null;
+    return Math.round(nums.reduce((a,b)=>a+b,0)/nums.length*10)/10;
+  }
+}
+
+function saveNilai(inp){
+  const sid = inp.dataset.sid;
+  const kid = inp.dataset.kid;
+  const ci = parseInt(inp.dataset.ci);
+  const val = inp.value;
+  const db = getDB(CU.id);
+  if(!db.nilaiData[kid]) db.nilaiData[kid] = {};
+  if(!db.nilaiData[kid][sid]) db.nilaiData[kid][sid] = {};
+  db.nilaiData[kid][sid][ci] = val;
+  saveDB(CU.id, db);
+  // update avg
+  const kolom = db.nilaiKolom[kid]||[];
+  const avg = hitungRataRata(kolom, db.nilaiData[kid][sid]);
+  const avgEl = document.getElementById('avg_'+kid+'_'+sid);
+  if(avgEl) avgEl.textContent = avg!==null?avg:'—';
+}
+
+let _nilaiTargetKelas = null;
+
+function openModalKolomNilai(){
+  _nilaiTargetKelas = document.getElementById('nilaiKelasSelect').value;
+  if(!_nilaiTargetKelas){ toast('⚠️ Pilih kelas terlebih dahulu.'); return; }
+  document.getElementById('mKolomNama').value = '';
+  document.getElementById('mKolomBobot').value = '';
+  openModal('modalKolomNilai');
+}
+
+function saveKolomNilai(){
+  const nama = document.getElementById('mKolomNama').value.trim();
+  if(!nama){ alert('Nama kolom nilai wajib diisi.'); return; }
+  const bobotRaw = document.getElementById('mKolomBobot').value.trim();
+  const bobot = bobotRaw==='' ? 0 : parseFloat(bobotRaw);
+  if(!Number.isFinite(bobot) || bobot<0 || bobot>100){ alert('Bobot harus 0–100%.'); return; }
+  const db = getDB(CU.id);
+  if(!db.nilaiKolom[_nilaiTargetKelas]) db.nilaiKolom[_nilaiTargetKelas] = [];
+  const totalSebelum=db.nilaiKolom[_nilaiTargetKelas].reduce((a,k)=>a+(parseFloat(k.bobot)||0),0);
+  if(totalSebelum+bobot>100){ alert(`Total bobot tidak boleh lebih dari 100%. Saat ini ${totalSebelum}%.`); return; }
+  db.nilaiKolom[_nilaiTargetKelas].push({nama, bobot: bobotRaw===''?'':bobot});
+  saveDB(CU.id, db);
+  closeModal('modalKolomNilai');
+  loadNilai();
+  renderDashboard();
+  toast('✅ Kolom nilai ditambahkan.');
+}
+
+function hapusKolom(kid, idx){
+  if(!confirm('Hapus kolom nilai ini? Data nilai di kolom ini akan hilang.')) return;
+  const db = getDB(CU.id);
+  db.nilaiKolom[kid].splice(idx, 1);
+  // shift data nilai
+  Object.keys(db.nilaiData[kid]||{}).forEach(sid=>{
+    const row = db.nilaiData[kid][sid];
+    const newRow = {};
+    Object.keys(row).forEach(ci=>{
+      const c = parseInt(ci);
+      if(c < idx) newRow[c] = row[c];
+      else if(c > idx) newRow[c-1] = row[c];
+    });
+    db.nilaiData[kid][sid] = newRow;
+  });
+  saveDB(CU.id, db);
+  loadNilai();
+  toast('🗑️ Kolom nilai dihapus.');
+}
+
+// ============================================================
+// LAPORAN
+// ============================================================
+function loadLaporan(){
+  const kid = document.getElementById('lapKelasSelect').value;
+  const db = getDB(CU.id);
+  const cont = document.getElementById('lapContainer');
+  if(!kid){ cont.innerHTML='<div class="empty"><div class="ei">📊</div><p>Pilih kelas.</p></div>'; return; }
+
+  const kelas = db.kelas.find(k=>k.id===kid);
+  const siswaList = db.siswa.filter(s=>s.kelasId===kid);
+  if(!siswaList.length){ cont.innerHTML='<div class="empty"><div class="ei">👤</div><p>Belum ada siswa.</p></div>'; return; }
+
+  const absSesiKeys = Object.keys(db.absensi).filter(k=>k.startsWith(kid+'_'));
+  const kolom = db.nilaiKolom[kid]||[];
+
+  // Rekap absensi
+  const rekapAbs = {};
+  siswaList.forEach(s=>{ rekapAbs[s.id]={H:0,I:0,S:0,A:0}; });
+  absSesiKeys.forEach(key=>{
+    const sesi = db.absensi[key];
+    Object.keys(sesi).forEach(sid=>{
+      if(!rekapAbs[sid]) return;
+      const st = sesi[sid];
+      if(st==='Hadir') rekapAbs[sid].H++;
+      else if(st==='Izin') rekapAbs[sid].I++;
+      else if(st==='Sakit') rekapAbs[sid].S++;
+      else rekapAbs[sid].A++;
+    });
+  });
+
+  const totalSesi = absSesiKeys.length;
+  const kkm = Number(db.settings?.kkm ?? 75);
+
+  cont.innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div style="font-weight:800;font-size:.95rem;color:var(--navy);">📊 ${kelas?.nama||''}</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-gold btn-sm" onclick="cetakLaporan('${kid}')">🖨️ Cetak PDF</button>
+          <button class="btn btn-green btn-sm" onclick="exportExcel('${kid}')">📊 Export Excel</button>
+        </div>
+      </div>
+
+      <div style="font-size:.8rem;font-weight:700;color:var(--navy);margin-bottom:10px;">✅ Rekap Absensi (${totalSesi} sesi)</div>
+      <div class="tbl-wrap" style="margin-bottom:20px;">
+        <table>
+          <thead><tr><th>No</th><th>Nama Siswa</th><th style="color:#27ae60">Hadir</th>
+            <th style="color:#f39c12">Izin</th><th style="color:#e67e22">Sakit</th>
+            <th style="color:#e74c3c">Alfa</th><th>%Hadir</th></tr></thead>
+          <tbody>${siswaList.map((s,i)=>{
+            const r = rekapAbs[s.id]||{H:0,I:0,S:0,A:0};
+            const tot = r.H+r.I+r.S+r.A||1;
+            const pct = Math.round(r.H/tot*100);
+            return `<tr>
+              <td>${i+1}</td><td class="tl">${s.nama}</td>
+              <td style="color:#27ae60;font-weight:700;">${r.H}</td>
+              <td style="color:#f39c12;font-weight:700;">${r.I}</td>
+              <td style="color:#e67e22;font-weight:700;">${r.S}</td>
+              <td style="color:#e74c3c;font-weight:700;">${r.A}</td>
+              <td><div style="display:flex;align-items:center;gap:6px;">
+                <div class="prog" style="flex:1;"><div class="prog-fill" style="width:${pct}%;"></div></div>
+                <span style="font-size:.75rem;font-weight:700;">${pct}%</span>
+              </div></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+
+      ${kolom.length ? `
+      <div style="font-size:.8rem;font-weight:700;color:var(--navy);margin-bottom:10px;">📝 Rekap Nilai <span class="badge badge-gold">KKM ${kkm}</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>No</th><th>Nama Siswa</th>
+            ${kolom.map(k=>`<th>${k.nama}</th>`).join('')}
+            <th>Rata-rata</th>
+          </tr></thead>
+          <tbody>${siswaList.map((s,i)=>{
+            const nilaiRow = (db.nilaiData[kid]||{})[s.id]||{};
+            const avg = hitungRataRata(kolom, nilaiRow);
+            return `<tr>
+              <td>${i+1}</td><td class="tl">${s.nama}</td>
+              ${kolom.map((_,ci)=>`<td>${nilaiRow[ci]!==undefined&&nilaiRow[ci]!==''?nilaiRow[ci]:'—'}</td>`).join('')}
+              <td><strong>${avg!==null?avg:'—'}</strong></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>` : '<div style="font-size:.8rem;color:#aab;margin-top:8px;">Belum ada data nilai.</div>'}
+    </div>`;
+}
+
+function cetakLaporan(kid){
+  const db = getDB(CU.id);
+  const kelas = db.kelas.find(k=>k.id===kid);
+  const siswaList = db.siswa.filter(s=>s.kelasId===kid);
+  const kolom = db.nilaiKolom[kid]||[];
+  const absSesiKeys = Object.keys(db.absensi).filter(k=>k.startsWith(kid+'_'));
+
+  const rekapAbs = {};
+  siswaList.forEach(s=>{ rekapAbs[s.id]={H:0,I:0,S:0,A:0}; });
+  absSesiKeys.forEach(key=>{
+    const sesi = db.absensi[key];
+    Object.keys(sesi).forEach(sid=>{
+      if(!rekapAbs[sid]) return;
+      const st = sesi[sid];
+      if(st==='Hadir')rekapAbs[sid].H++;
+      else if(st==='Izin')rekapAbs[sid].I++;
+      else if(st==='Sakit')rekapAbs[sid].S++;
+      else rekapAbs[sid].A++;
+    });
+  });
+
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Laporan ${kelas?.nama||''}</title>
+  <style>body{font-family:Arial,sans-serif;padding:24px;color:#1e2a3a;}
+  h2{color:#0a1f44;}table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px;}
+  th{background:#1a73e8;color:#fff;padding:7px 8px;}
+  td{padding:6px 8px;border-bottom:1px solid #dde;text-align:center;}
+  td:nth-child(2){text-align:left;}.sec{font-weight:700;margin:14px 0 6px;color:#0a1f44;border-bottom:2px solid #1a73e8;padding-bottom:3px;}
+  .footer{margin-top:20px;font-size:10px;color:#888;border-top:1px solid #ddd;padding-top:10px;}</style>
+  </head><body>
+  <h2>Laporan Kelas ${kelas?.nama||''}</h2>
+  <p style="font-size:11px;color:#888;">Guru: ${CU.nama} · Dicetak: ${new Date().toLocaleString('id-ID')}</p>
+  <div class="sec">Rekap Absensi</div>
+  <table><thead><tr><th>No</th><th>Nama</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alfa</th><th>%Hadir</th></tr></thead><tbody>
+  ${siswaList.map((s,i)=>{
+    const r=rekapAbs[s.id]||{H:0,I:0,S:0,A:0};
+    const tot=r.H+r.I+r.S+r.A||1;
+    return `<tr><td>${i+1}</td><td>${s.nama}</td><td>${r.H}</td><td>${r.I}</td><td>${r.S}</td><td>${r.A}</td><td>${Math.round(r.H/tot*100)}%</td></tr>`;
+  }).join('')}
+  </tbody></table>`;
+
+  if(kolom.length){
+    html += `<div class="sec">Rekap Nilai</div>
+    <table><thead><tr><th>No</th><th>Nama</th>${kolom.map(k=>`<th>${k.nama}</th>`).join('')}<th>Rata-rata</th></tr></thead><tbody>
+    ${siswaList.map((s,i)=>{
+      const nr=(db.nilaiData[kid]||{})[s.id]||{};
+      const avg=hitungRataRata(kolom,nr);
+      return `<tr><td>${i+1}</td><td>${s.nama}</td>${kolom.map((_,ci)=>`<td>${nr[ci]!==undefined&&nr[ci]!==''?nr[ci]:'—'}</td>`).join('')}<td><strong>${avg!==null?avg:'—'}</strong></td></tr>`;
+    }).join('')}
+    </tbody></table>`;
+  }
+  html += `<div class="footer">${CU.nama} · ${new Date().toLocaleString('id-ID')}</div>
+<div style="position:fixed;left:10px;bottom:8px;z-index:9999;font-size:10px;opacity:.55;pointer-events:none">
+  MISSKA v4.2 · GitHub Pages
+</div>
+
+</body></html>`;
+
+  const w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(), 600);
+}
+
+function exportExcel(kid){
+  const db = getDB(CU.id);
+  const kelas = db.kelas.find(k=>k.id===kid);
+  const siswaList = db.siswa.filter(s=>s.kelasId===kid);
+  const kolom = db.nilaiKolom[kid]||[];
+  const absSesiKeys = Object.keys(db.absensi).filter(k=>k.startsWith(kid+'_'));
+
+  const rekapAbs = {};
+  siswaList.forEach(s=>{ rekapAbs[s.id]={H:0,I:0,S:0,A:0}; });
+  absSesiKeys.forEach(key=>{
+    const sesi = db.absensi[key];
+    Object.keys(sesi).forEach(sid=>{
+      if(!rekapAbs[sid]) return;
+      const st=sesi[sid];
+      if(st==='Hadir')rekapAbs[sid].H++;
+      else if(st==='Izin')rekapAbs[sid].I++;
+      else if(st==='Sakit')rekapAbs[sid].S++;
+      else rekapAbs[sid].A++;
+    });
+  });
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet Absensi
+  const absData = [['No','Nama Siswa','Hadir','Izin','Sakit','Alfa','% Hadir']];
+  siswaList.forEach((s,i)=>{
+    const r=rekapAbs[s.id]||{H:0,I:0,S:0,A:0};
+    const tot=r.H+r.I+r.S+r.A||1;
+    absData.push([i+1,s.nama,r.H,r.I,r.S,r.A,Math.round(r.H/tot*100)+'%']);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(absData), 'Absensi');
+
+  // Sheet Nilai
+  if(kolom.length){
+    const nilaiData = [['No','Nama Siswa',...kolom.map(k=>k.nama),'Rata-rata']];
+    siswaList.forEach((s,i)=>{
+      const nr=(db.nilaiData[kid]||{})[s.id]||{};
+      const avg=hitungRataRata(kolom,nr);
+      nilaiData.push([i+1,s.nama,...kolom.map((_,ci)=>nr[ci]!==undefined&&nr[ci]!==''?nr[ci]:''),avg!==null?avg:'']);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(nilaiData), 'Nilai');
+  }
+
+  XLSX.writeFile(wb, `Laporan_${kelas?.nama||'Kelas'}_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.xlsx`);
+  toast('✅ File Excel berhasil diunduh!');
+}
+
+// ============================================================
+// PENGATURAN
+// ============================================================
+function loadPengaturan(){
+  // Info akun
+  document.getElementById('infoAkunBox').innerHTML = `
+    <div><span style="color:#9aabb8;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;">Nama</span><br><strong>${CU.nama}</strong></div>
+    <div><span style="color:#9aabb8;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;">Email</span><br><strong>${CU.email}</strong></div>
+    <div><span style="color:#9aabb8;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;">Status</span><br><span class="badge badge-green">✅ Aktif</span></div>`;
+
+  // Kode master — hanya tampil untuk akun pertama (master)
+  const users = getUsers();
+  const allUsers = Object.values(users);
+  const isMaster = allUsers.length === 0 || allUsers[0].id === CU.id;
+  document.getElementById('cardMasterCode').style.display = isMaster ? 'block' : 'none';
+  if(isMaster){
+    fetchMasterCode();
+    setTimeout(()=>{
+      const el = document.getElementById('displayMasterCode');
+      if(el) el.textContent = MASTER_CODE;
+    }, 800);
+  }
+
+  const db=getDB(CU.id);
+  document.getElementById('settingKKM').value=db.settings.kkm ?? 75;
+
+  // reset form password
+  ['pwLama','pwBaru','pwKonfirm'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pwErr').style.display='none';
+}
+
+function simpanKKM(){
+  const v=parseFloat(document.getElementById('settingKKM').value);
+  if(!Number.isFinite(v)||v<0||v>100){toast('⚠️ KKM harus 0–100.');return;}
+  const db=getDB(CU.id); db.settings.kkm=v; saveDB(CU.id,db);
+  toast('✅ KKM disimpan.');
+  loadLaporan();
+}
+
+function backupData(){
+  const db=getDB(CU.id);
+  const payload={app:'MISSKA',version:4,exportedAt:new Date().toISOString(),user:{email:CU.email,nama:CU.nama},data:db};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`MISSKA_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
+  URL.revokeObjectURL(a.href); toast('✅ Backup berhasil dibuat.');
+}
+
+function restoreData(e){
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const payload=JSON.parse(ev.target.result);
+      const db=payload.data;
+      if(!db || !Array.isArray(db.kelas) || !Array.isArray(db.siswa) || typeof db.absensi!=='object'){
+        throw new Error('format');
+      }
+      if(!confirm('Restore akan mengganti data MISSKA akun ini. Lanjutkan?')) return;
+      localStorage.setItem(getKey(CU.id),JSON.stringify(db));
+      populateKelasSelects(); renderDashboard(); renderKelas(); loadAbsensi(); loadNilai(); loadLaporan();
+      toast('✅ Data berhasil direstore.');
+    }catch(err){alert('File backup MISSKA tidak valid atau rusak.');}
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+function gantiPassword(){
+  const lama = document.getElementById('pwLama').value;
+  const baru = document.getElementById('pwBaru').value;
+  const konfirm = document.getElementById('pwKonfirm').value;
+  const errEl = document.getElementById('pwErr');
+  errEl.style.display='none';
+
+  if(!lama||!baru||!konfirm){ showErr(errEl,'Semua field wajib diisi.'); return; }
+  if(lama !== CU.password){ showErr(errEl,'Password lama salah.'); return; }
+  if(baru.length < 6){ showErr(errEl,'Password baru minimal 6 karakter.'); return; }
+  if(baru !== konfirm){ showErr(errEl,'Konfirmasi password tidak cocok.'); return; }
+
+  const users = getUsers();
+  if(users[CU.id]){ users[CU.id].password = baru; saveUsers(users); }
+  CU.password = baru;
+  sessionStorage.setItem('misska_cu', JSON.stringify(CU));
+  ['pwLama','pwBaru','pwKonfirm'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Password berhasil diubah!');
+}
+
+// ============================================================
+// MODAL & TOAST HELPERS
+// ============================================================
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+(function init(){
+  fetchMasterCode(); // ambil kode terbaru dari GitHub
+  const saved = sessionStorage.getItem('misska_cu');
+  if(saved){
+    try{
+      CU = JSON.parse(saved);
+      // refresh dari users
+      const users = getUsers();
+      if(users[CU.id]){
+        CU = users[CU.id];
+        sessionStorage.setItem('misska_cu', JSON.stringify(CU));
+      }
+      if(!CU.approved){ showPending(); }
+      else { showApp(); }
+    } catch(e){ showPage('login'); }
+  } else {
+    showPage('login');
+  }
+})();
+</script>
+
+<!-- SERVICE WORKER -->
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+</script>
+
+<script>
+/* =========================================================
+   MISSKA v4.2 — CLOUD SYNC + SUPABASE AUTH
+   ========================================================= */
+const MISSKA_SYNC_KEY = 'misska_cloud_sync_v41';
+let MISSKA_SUPABASE = null;
+let MISSKA_CLOUD_USER = null;
+
+function getCloudConfig(){
+  try{
+    const raw = localStorage.getItem(MISSKA_SYNC_KEY);
+    return raw ? JSON.parse(raw) : {url:'', key:'', workspaceId:''};
+  }catch(e){
+    return {url:'', key:'', workspaceId:''};
+  }
+}
+
+function setSyncUI(state, text, lastText){
+  const dot = document.getElementById('syncDot');
+  const status = document.getElementById('syncStatusText');
+  const last = document.getElementById('syncLastText');
+  if(dot) dot.className = 'sync-dot ' + (state || '');
+  if(status) status.textContent = text || '';
+  if(last && lastText !== undefined) last.textContent = lastText;
+}
+
+function initCloudClient(){
+  const cfg = getCloudConfig();
+  if(!cfg.url || !cfg.key || !window.supabase){
+    MISSKA_SUPABASE = null;
+    return false;
+  }
+  try{
+    MISSKA_SUPABASE = window.supabase.createClient(cfg.url, cfg.key, {
+      auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}
+    });
+    return true;
+  }catch(e){
+    console.error(e);
+    MISSKA_SUPABASE = null;
+    return false;
+  }
+}
+
+function saveCloudConfig(){
+  const url = (document.getElementById('syncSupabaseUrl')?.value || '').trim().replace(/\/+$/,'');
+  const key = (document.getElementById('syncSupabaseKey')?.value || '').trim();
+  const workspaceId = (document.getElementById('syncWorkspaceId')?.value || '').trim();
+
+  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){
+    alert('Supabase Project URL tidak valid. Contoh: https://xxxx.supabase.co');
+    return;
+  }
+  if(key.length < 20){
+    alert('Supabase Publishable/Anon Key belum terlihat valid.');
+    return;
+  }
+  if(!/^[a-zA-Z0-9._-]{3,80}$/.test(workspaceId)){
+    alert('ID Sinkronisasi hanya boleh berisi huruf, angka, titik, garis bawah, atau tanda minus.');
+    return;
+  }
+
+  localStorage.setItem(MISSKA_SYNC_KEY, JSON.stringify({url,key,workspaceId}));
+  initCloudClient();
+  setSyncUI('online','Konfigurasi cloud tersimpan. Silakan tes koneksi.');
+  alert('Konfigurasi Cloud Sync tersimpan di perangkat ini.');
+}
+
+function loadCloudConfigUI(){
+  const cfg = getCloudConfig();
+  const u = document.getElementById('syncSupabaseUrl');
+  const k = document.getElementById('syncSupabaseKey');
+  const w = document.getElementById('syncWorkspaceId');
+  if(u) u.value = cfg.url || '';
+  if(k) k.value = cfg.key || '';
+  if(w) w.value = cfg.workspaceId || '';
+
+  const last = localStorage.getItem('misska_cloud_last_sync');
+  if(last){
+    setSyncUI('online','Cloud Sync siap', 'Terakhir sinkron: ' + new Date(Number(last)).toLocaleString('id-ID'));
+  }else if(cfg.url && cfg.key && cfg.workspaceId){
+    setSyncUI('online','Cloud Sync siap','Belum pernah sinkron.');
+  }else{
+    setSyncUI('','Cloud Sync belum dikonfigurasi','Belum pernah sinkron.');
+  }
+}
+
+async function ensureCloudAuth(){
+  if(!initCloudClient()) throw new Error('Cloud Sync belum dikonfigurasi.');
+
+  if(!CU || !CU.email) throw new Error('Akun MISSKA belum aktif.');
+
+  const cfg = getCloudConfig();
+  if(!cfg.workspaceId) throw new Error('ID Sinkronisasi belum diisi.');
+
+  // First try existing Supabase Auth session.
+  const sessionRes = await MISSKA_SUPABASE.auth.getSession();
+  if(sessionRes.data && sessionRes.data.session){
+    MISSKA_CLOUD_USER = sessionRes.data.session.user;
+    return MISSKA_CLOUD_USER;
+  }
+
+  // Sign in using the same email/password already used by MISSKA.
+  const password = CU.password;
+  if(!password) throw new Error('Password akun MISSKA tidak tersedia di perangkat ini.');
+
+  let {data, error} = await MISSKA_SUPABASE.auth.signInWithPassword({
+    email: CU.email,
+    password
+  });
+
+  if(!error && data && data.user){
+    MISSKA_CLOUD_USER = data.user;
+    return MISSKA_CLOUD_USER;
+  }
+
+  // If the cloud account does not exist yet, create it.
+  const signUp = await MISSKA_SUPABASE.auth.signUp({
+    email: CU.email,
+    password,
+    options:{data:{nama:CU.nama || ''}}
+  });
+
+  if(signUp.error) throw signUp.error;
+
+  if(signUp.data && signUp.data.session && signUp.data.user){
+    MISSKA_CLOUD_USER = signUp.data.user;
+    return MISSKA_CLOUD_USER;
+  }
+
+  throw new Error('Akun cloud dibuat, tetapi Supabase meminta verifikasi email. Buka email verifikasi lalu coba sinkronkan lagi.');
+}
+
+async function testCloudConnection(){
+  try{
+    if(!initCloudClient()){
+      setSyncUI('error','Konfigurasi cloud belum lengkap.');
+      alert('Konfigurasi Cloud Sync belum lengkap.');
+      return false;
+    }
+    setSyncUI('syncing','Menghubungkan akun ke cloud...');
+    await ensureCloudAuth();
+
+    const {error} = await MISSKA_SUPABASE
+      .from('misska_cloud')
+      .select('id')
+      .eq('workspace_id', getCloudConfig().workspaceId)
+      .limit(1);
+
+    if(error) throw error;
+
+    setSyncUI('online','Koneksi & akun cloud berhasil.',
+      'Akun cloud: ' + (CU?.email || '') + ' · ' + new Date().toLocaleString('id-ID'));
+    return true;
+  }catch(e){
+    console.error('MISSKA cloud test:', e);
+    setSyncUI('error','Koneksi gagal: ' + (e.message || 'periksa konfigurasi.'));
+    alert('Koneksi cloud gagal.\n\n' + (e.message || e));
+    return false;
+  }
+}
+
+function getCurrentSyncDB(){
+  if(!CU || !CU.id) throw new Error('Akun MISSKA belum aktif.');
+  return getDB(CU.id);
+}
+
+async function syncToCloud(){
+  if(!navigator.onLine){
+    setSyncUI('offline','Tidak ada jaringan. Data tetap tersimpan di perangkat.',
+      'Sinkronisasi menunggu koneksi internet.');
+    alert('Tidak ada koneksi internet.\nData MISSKA tetap tersimpan secara lokal.');
+    return false;
+  }
+
+  try{
+    setSyncUI('syncing','Mengamankan akun & menyimpan data...');
+    const cloudUser = await ensureCloudAuth();
+    const cfg = getCloudConfig();
+    const db = getCurrentSyncDB();
+
+    const payload = {
+      owner_id: cloudUser.id,
+      workspace_id: cfg.workspaceId,
+      user_email: CU.email || '',
+      updated_at: new Date().toISOString(),
+      payload: db
+    };
+
+    const {error} = await MISSKA_SUPABASE
+      .from('misska_cloud')
+      .upsert(payload, {onConflict:'owner_id,workspace_id'});
+
+    if(error) throw error;
+
+    const now = Date.now();
+    localStorage.setItem('misska_cloud_last_sync', String(now));
+    localStorage.removeItem('misska_cloud_pending');
+    setSyncUI('online','Data berhasil disimpan & disinkronkan.',
+      'Terakhir sinkron: ' + new Date(now).toLocaleString('id-ID'));
+    return true;
+  }catch(e){
+    console.error('MISSKA sync upload:', e);
+    setSyncUI('error','Gagal menyimpan ke cloud: ' + (e.message || 'error'));
+    alert('Gagal menyimpan ke cloud.\n\n' + (e.message || e));
+    return false;
+  }
+}
+
+async function pullFromCloud(){
+  if(!navigator.onLine){
+    setSyncUI('offline','Tidak ada jaringan. Menggunakan data lokal.',
+      'Hubungkan internet untuk mengambil data cloud.');
+    return false;
+  }
+
+  try{
+    setSyncUI('syncing','Mengambil data terbaru dari cloud...');
+    const cloudUser = await ensureCloudAuth();
+    const cfg = getCloudConfig();
+
+    const {data, error} = await MISSKA_SUPABASE
+      .from('misska_cloud')
+      .select('payload,updated_at,user_email')
+      .eq('owner_id', cloudUser.id)
+      .eq('workspace_id', cfg.workspaceId)
+      .maybeSingle();
+
+    if(error) throw error;
+
+    if(!data){
+      setSyncUI('online','Belum ada data cloud untuk akun & ID ini.');
+      alert('Belum ada data tersimpan di cloud untuk akun dan ID Sinkronisasi tersebut.');
+      return false;
+    }
+
+    const ok = confirm(
+      'Data cloud ditemukan.' +
+      (data.updated_at ? '\\nTerakhir diubah: ' + new Date(data.updated_at).toLocaleString('id-ID') : '') +
+      '\\n\\nAmbil data cloud dan jadikan data aktif di perangkat ini?\\nData lokal saat ini akan digantikan.'
+    );
+    if(!ok){
+      setSyncUI('online','Pengambilan data dibatalkan.');
+      return false;
+    }
+
+    localStorage.setItem(getKey(CU.id), JSON.stringify(data.payload || {}));
+
+    try{ populateKelasSelects(); }catch(e){}
+    try{ renderDashboard(); }catch(e){}
+    try{ renderKelas(); }catch(e){}
+    try{ loadAbsensi(); }catch(e){}
+    try{ loadNilai(); }catch(e){}
+    try{ loadLaporan(); }catch(e){}
+
+    const now = Date.now();
+    localStorage.setItem('misska_cloud_last_sync', String(now));
+    localStorage.removeItem('misska_cloud_pending');
+    setSyncUI('online','Data cloud berhasil diambil.',
+      'Terakhir sinkron: ' + new Date(now).toLocaleString('id-ID'));
+    alert('Data cloud berhasil diambil ke perangkat ini.');
+    return true;
+  }catch(e){
+    console.error('MISSKA sync download:', e);
+    setSyncUI('error','Gagal mengambil data cloud: ' + (e.message || 'error'));
+    alert('Gagal mengambil data cloud.\n\n' + (e.message || e));
+    return false;
+  }
+}
+
+async function autoSyncWhenOnline(){
+  const cfg = getCloudConfig();
+  if(!cfg.url || !cfg.key || !cfg.workspaceId || !navigator.onLine) return;
+  if(localStorage.getItem('misska_cloud_pending') === '1'){
+    await syncToCloud();
+  }
+}
+
+window.addEventListener('online', function(){
+  const cfg = getCloudConfig();
+  if(cfg.url && cfg.key && cfg.workspaceId){
+    setSyncUI('online','Internet kembali. Menyiapkan sinkronisasi...');
+    setTimeout(autoSyncWhenOnline, 1000);
+  }
+});
+window.addEventListener('offline', function(){
+  setSyncUI('offline','Offline — data tetap tersimpan di perangkat.',
+    'Sinkronisasi akan dilakukan saat jaringan tersedia.');
+});
+
+// Wrap the existing saveDB, preserving all original behavior while marking
+// the local database as needing upload.
+(function wrapSaveDB(){
+  if(typeof window.saveDB !== 'function' || window.__misskaSaveDBWrapped) return;
+  const originalSaveDB = window.saveDB;
+  window.saveDB = function(uid, db){
+    const result = originalSaveDB.apply(this, arguments);
+    try{
+      if(CU && uid === CU.id) localStorage.setItem('misska_cloud_pending','1');
+    }catch(e){}
+    return result;
+  };
+  window.__misskaSaveDBWrapped = true;
+})();
+
+document.addEventListener('DOMContentLoaded', function(){
+  loadCloudConfigUI();
+  if(!navigator.onLine){
+    setSyncUI('offline','Offline — data tetap tersimpan di perangkat.',
+      'Hubungkan internet untuk sinkronisasi.');
+  }
+});
+
+</script>
+
+<div style="position:fixed;left:10px;bottom:8px;z-index:9999;font-size:10px;opacity:.55;pointer-events:none">
+  MISSKA v4.2 · GitHub Pages
+</div>
+
+</body>
+</html>
